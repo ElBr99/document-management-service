@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum SubmissionResult {
     SUCCESS("Успешно"),
-    CONFLICT("Конфликт"),
-    NOT_FOUND("Не успешно");
+    CONFLICT_STATUS("Конфликт статусов документа"),
+    NOT_FOUND("Не найдено"),
+    UPDATING_ERROR("Ошибка при обновлении"),
+    DOCUMENT_REGISTRY_ERROR ("Ошибка регистрации в реестре");
+
 
     private final String resultName;
 

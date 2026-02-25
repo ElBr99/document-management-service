@@ -9,14 +9,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SubmitDocumentDto {
+public class ChangeDocumentStatusDto {
 
     @Size(min = 1, max = 1000, message = ApiAnswerConstants.INCORRECT_VALUE + "максимальное кол-во айдишников -1000, минимальное - 1")
     private List<@NotNull(message = ApiAnswerConstants.MISSING_VALUE + "значение списка не может быть пустым") Long> documentIds;
+
+    private String comment;
 
 }

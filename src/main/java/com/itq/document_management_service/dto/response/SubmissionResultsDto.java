@@ -14,12 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SubmissionResultsDto {
 
-    private List<Results> results;
+    private Long documentId;
+    private SubmissionResult resultMessage;
 
-    @Data
-    @Builder
-    public class Results {
-        private Long documentId;
-        private SubmissionResult resultMessage;
-    }
 }

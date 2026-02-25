@@ -1,79 +1,123 @@
 package com.itq.document_management_service.service;
 
-import com.itq.document_management_service.dto.AbstractResponseDto;
+import com.itq.document_management_service.dto.request.DocumentStatusHistoryDto;
 import com.itq.document_management_service.dto.request.CreateDocumentMetadataDto;
+import com.itq.document_management_service.dto.response.DocumentResponse;
 import com.itq.document_management_service.dto.response.SubmissionResultsDto;
-import com.itq.document_management_service.dto.response.SuccessResponseDto;
+import com.itq.document_management_service.exception.DocumentNotFoundException;
 import com.itq.document_management_service.mapper.DocumentMapper;
 import com.itq.document_management_service.model.Document;
 import com.itq.document_management_service.reference.SubmissionResult;
+import com.itq.document_management_service.reference.UserAction;
 import com.itq.document_management_service.repository.DocumentRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.itq.document_management_service.reference.SubmissionResult.*;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class DocumentProcessingService {
 
-    private final DocumentRepository documentRepository;
-    private final DocumentMapper documentMapper;
+    private DocumentRepository documentRepository;
+    private DocumentMapper documentMapper;
+    private ApplicationEventPublisher applicationEventPublisher;
+    private List<DocumentStatusTransferring> handlers;
+    private Map<UserAction, DocumentStatusTransferring> documentStatusProcessingHandlers;
 
-    @Transactional
-    public void createAndSaveDocument(CreateDocumentMetadataDto createDocumentMetadataDto) {
 
+    public DocumentProcessingService(DocumentRepository documentRepository, DocumentMapper documentMapper, ApplicationEventPublisher applicationEventPublisher, List<DocumentStatusTransferring> handlers) {
+        this.documentRepository = documentRepository;
+        this.documentMapper = documentMapper;
+        this.applicationEventPublisher = applicationEventPublisher;
+        this.handlers = handlers;
+
+        this.documentStatusProcessingHandlers = handlers.stream()
+                .collect(Collectors.toMap(DocumentStatusTransferring::getAction, Function.identity()));
+    }
+
+
+    @Transactional(readOnly = true)
+    public DocumentResponse getDocument(Long id) {
+        var foundDoc = documentRepository.findById(id)
+                .orElseThrow(() -> new DocumentNotFoundException("Документ по id: " + id + " не найден"));
+
+        log.info("Документ по id: {} успешно найден", id);
+        return documentMapper.mapWithHistoryFromDocument(foundDoc);
+    }
+
+
+    @Transactional(readOnly = true)
+    public Page<DocumentResponse> getDocuments(List<Long> ids, Pageable pageable) {
+        log.info("Получение документов: ids.size={}, page={}, size={}",
+                ids.size(), pageable.getPageNumber(), pageable.getPageSize());
+
+        var pagedDocuments = documentRepository.findAllByIdIn(ids, pageable);
+
+        log.info("Документы в кол-ве {} найдены в репозитории", pagedDocuments.getTotalElements());
+        return pagedDocuments.map(document -> documentMapper.mapWithoutHistoryFromDoc(document));
+    }
+
+
+    public void createDocument(CreateDocumentMetadataDto createDocumentMetadataDto) {
         log.info("Происходит создание документа");
 
         Document createdDocument = documentMapper.mapToDocument(createDocumentMetadataDto);
-        documentRepository.save(createdDocument);
+        createAndPublishEvent(createdDocument, createDocumentMetadataDto.getCreatedBy(), UserAction.DRAFT);
 
+        documentRepository.save(createdDocument);
         log.info("Документ успешно создан");
     }
 
-    public SubmissionResultsDto sendDocumentsToSubmission(List<Long> documentIds) {
+    public List<SubmissionResultsDto> processDocuments(UserAction userAction, List<Long> documentIds, UUID updatedBy) {
 
         List<Document> foundDocuments = documentRepository.findAllById(documentIds);
-
-        Map<Long, Document> foundMap = foundDocuments.stream()
+        Map<Long, Document> foundMap = foundDocuments
+                .stream()
                 .collect(Collectors.toMap(Document::getId, doc -> doc));
 
-        processNotFoundDocuments(documentIds, foundMap);
-
-
-
-
-    }
-
-    private List<Long> checkNotFoundDocuments(List<Long> documentIds, Map<Long, Document> foundMap) {
-        return documentIds.stream()
-                .filter(id -> !foundMap.containsKey(id))
+        return documentIds
+                .stream()
+                .map(id -> {
+                    Document document = foundMap.get(id);
+                    if (document == null) {
+                        return buildSubmissionResultDto(id, NOT_FOUND);
+                    }
+                    return documentStatusProcessingHandlers.get(userAction).processDocumentStatusTransferring(document, updatedBy);
+                })
                 .toList();
     }
 
-    private SubmissionResultsDto buildSubmissionResultDto(List<Long> ids, SubmissionResult submissionResult) {
-        List<SubmissionResultsDto.Results> results = new ArrayList<>();
-        ids.forEach(id -> {
-
-            SubmissionResultsDto.Results result = SubmissionResultsDto.Results.builder()
-                    .documentId(id)
-                    .resultMessage(submissionResult)
-                    .build();
-
-            results.add(result);
-        });
-
-        return new SubmissionResultsDto(results);
-    }
-
-    private SubmissionResultsDto processNotFoundDocuments(List<Long> documentIds, Map<Long, Document> foundMap) {
-        var notFoundDocumentsIds = checkNotFoundDocuments(documentIds, foundMap);
-        return buildSubmissionResultDto(notFoundDocumentsIds, SubmissionResult.NOT_FOUND);
+    private SubmissionResultsDto buildSubmissionResultDto(Long id, SubmissionResult submissionResult) {
+        return SubmissionResultsDto.builder()
+                .documentId(id)
+                .resultMessage(submissionResult)
+                .build();
     }
 
 
+    private DocumentStatusHistoryDto buildFromDocument(Document document, UUID updatedBy, UserAction userAction) {
+        return DocumentStatusHistoryDto.builder()
+                .id(document.getId())
+                .document(document.getDocumentNumber())
+                .updatedBy(updatedBy)
+                .action(userAction)
+                .build();
+    }
+
+
+    private void createAndPublishEvent(Document document, UUID updatedBy, UserAction userAction) {
+        var changedStatusDto = buildFromDocument(document, updatedBy, userAction);
+        applicationEventPublisher.publishEvent(changedStatusDto);
+    }
 }

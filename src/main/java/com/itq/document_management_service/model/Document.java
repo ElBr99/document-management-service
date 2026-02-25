@@ -41,9 +41,6 @@ public class Document {
     @Builder.Default
     private DocumentStatus status = DocumentStatus.DRAFT;
 
-//    @Version
-//    private Long version;
-
     @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -54,6 +51,9 @@ public class Document {
 
     @OneToMany(mappedBy = "document")
     private List<DocumentHistory> history;
+
+    @OneToOne(mappedBy = "document")
+    private DocumentRegistry documentRegistry;
 
     @PrePersist
     private void generateDocumentNumber() {

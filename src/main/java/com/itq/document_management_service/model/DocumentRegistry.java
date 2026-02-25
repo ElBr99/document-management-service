@@ -1,5 +1,6 @@
 package com.itq.document_management_service.model;
 
+import com.itq.document_management_service.reference.DocumentStatus;
 import com.itq.document_management_service.reference.UserAction;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,28 +17,31 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "t_document_history")
-public class DocumentHistory {
+@Table(name = "t_document_registry")
+public class DocumentRegistry {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "doc_id", nullable = false)
-    @ManyToOne(cascade = CascadeType.REMOVE)
-    @JoinColumn(name = "doc_id")
+    @Column(name = "doc_id", nullable = false, unique = true)
+    @OneToOne (cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "doc_id", referencedColumnName = "id")
     private Document document;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UUID updatedBy;
+    private DocumentStatus status;
+
+    @Column(nullable = false)
+    private UUID registeredBy;
 
     @UpdateTimestamp
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private LocalDateTime registeredAt;
 
-    @Column(name = "user_action", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private UserAction action;
 
     @Column(name = "user_comment")
     private String comment;
+
 }
