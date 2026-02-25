@@ -18,7 +18,7 @@ public class DocumentStatusChangingListener {
     private final DocumentHistoryRepository documentHistoryRepository;
     private final DocumentHistoryMapper documentHistoryMapper;
 
-    // @Async("notificationCreatedSendExecutor")
+
     @TransactionalEventListener(phase = BEFORE_COMMIT)
     public void addChangedDocumentStatusToHistory(DocumentStatusHistoryDto changeDocumentStatusDto) {
         log.info("Осуществляется сохранение истории по смене статуса по документу с documentNumber " + changeDocumentStatusDto.getDocument());
