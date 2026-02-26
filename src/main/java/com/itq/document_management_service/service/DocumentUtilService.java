@@ -1,13 +1,14 @@
 package com.itq.document_management_service.service;
 
-import static java.util.stream.IntStream.*;
-
 import com.itq.document_management_service.config.properties.GenerateDocumentProperties;
 import com.itq.document_management_service.dto.request.CreateDocumentMetadataDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.util.UUID;
+
+import static java.util.stream.IntStream.range;
 
 @Service
 @Slf4j

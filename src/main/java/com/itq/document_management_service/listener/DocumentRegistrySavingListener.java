@@ -20,15 +20,13 @@ public class DocumentRegistrySavingListener {
 
     @TransactionalEventListener(phase = BEFORE_COMMIT)
     public void addApprovedDocumentToRegistry(DocumentRegistryDto documentRegistryDto) {
-        log.info("Осуществляется сохранение информации в реестр утверждений по документу с documentNumber " + documentRegistryDto.getDocument().getDocumentNumber());
-
+        log.info("Осуществляется сохранение информации в реестр утверждений по документу с documentNumber {}", documentRegistryDto.getDocument().getDocumentNumber());
         var docForSaving = documentRegistryMapper.mapToDocumentRegistry(documentRegistryDto);
-
         try {
             documentRegistryRepository.save(docForSaving);
-            log.info("Документ с documentNumber " + docForSaving.getDocument().getDocumentNumber() + " успешно сохранен в реестре утверждений");
+            log.info("Документ с documentNumber {} успешно сохранен в реестре утверждений", docForSaving.getDocument().getDocumentNumber());
         } catch (Exception e) {
-            log.error("Документ с documentNumber " + docForSaving.getDocument().getDocumentNumber() + " не может быть сохранен в реестр утверждений");
+            log.error("Документ с documentNumber {} не может быть сохранен в реестр утверждений", docForSaving.getDocument().getDocumentNumber());
             throw new DocumentRegistrySavingException("Ошибка при сохранении документа в реестр утверждений");
         }
 

@@ -22,5 +22,4 @@ public class CreateDocumentMetadataDto {
     @NotBlank(message = ApiAnswerConstants.MISSING_VALUE)
     private String title;
 
-
 }

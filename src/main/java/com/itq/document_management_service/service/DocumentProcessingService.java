@@ -24,7 +24,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.itq.document_management_service.reference.SubmissionResult.*;
+import static com.itq.document_management_service.reference.SubmissionResult.NOT_FOUND;
 import static com.itq.document_management_service.repository.spec.DocumentSpecification.from;
 
 @Service

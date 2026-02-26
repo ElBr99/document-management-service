@@ -14,8 +14,8 @@ import com.itq.document_management_service.repository.DocumentHistoryRepository;
 import com.itq.document_management_service.repository.DocumentRegistryRepository;
 import com.itq.document_management_service.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,16 +25,33 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.List;
 import java.util.UUID;
 
-import static com.itq.document_management_service.reference.UserAction.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static com.itq.document_management_service.reference.DocumentStatus.SUBMITTED;
+import static com.itq.document_management_service.reference.SubmissionResult.CONFLICT_STATUS;
+import static com.itq.document_management_service.reference.SubmissionResult.SUCCESS;
+import static com.itq.document_management_service.reference.UserAction.APPROVE;
+import static com.itq.document_management_service.reference.UserAction.CREATE;
+import static com.itq.document_management_service.reference.UserAction.SUBMIT;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @SpringBootTest
 @RequiredArgsConstructor
@@ -55,16 +72,23 @@ public class DocumentProcessingServiceTest {
 
     @MockitoSpyBean
     private final DocumentMapper documentMapper;
+
     @MockitoSpyBean
     private final DocumentHistoryMapper documentHistoryMapper;
+
     @MockitoSpyBean
     private final DocumentRegistryMapper documentRegistryMapper;
 
     @AfterEach
     void clearDb() {
         registryRepository.deleteAll();
-        documentHistoryRepository.deleteAll();
         documentRepository.deleteAll();
+        documentHistoryRepository.deleteAll();
+    }
+
+    @AfterEach
+    void resetMocks() {
+        reset(registryRepository, documentMapper, documentHistoryMapper, documentRegistryMapper);
     }
 
 
@@ -88,8 +112,12 @@ public class DocumentProcessingServiceTest {
         submitDocAndCheckResults(changeDocStatus, updatedBy, createdDocumentId);
 
 
-        var finalDocObject = approveDocumentAndCheckResults(changeDocStatus, updatedBy, createdDocumentId);
-        assertTrue(registryRepository.existsById(finalDocObject.getId()));
+        approveDocumentAndCheckResults(changeDocStatus, updatedBy, createdDocumentId);
+
+        var approvedDoc = registryRepository.findByDocId(createdDocumentId).stream().findFirst();
+        assertFalse(approvedDoc.isEmpty());
+        assertEquals(approvedDoc.get().getStatus(), DocumentStatus.APPROVED);
+
     }
 
 
@@ -116,11 +144,84 @@ public class DocumentProcessingServiceTest {
                 .when(registryRepository)
                 .save(ArgumentMatchers.any(DocumentRegistry.class));
 
-        assertThrows(
-                Exception.class,
-                () -> approveDocumentWithExceptionResult(changeDocStatus, updatedBy, createdDocumentId)
-        );
+
+        approveDocumentWithExceptionResult(changeDocStatus, updatedBy, createdDocumentId);
+
         assertTrue(registryRepository.findAll().isEmpty());
+    }
+
+    @Test
+    @Sql(value = "classpath:scripts/01_insert_docs_batchSubmit.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void batchSubmit() throws Exception {
+        UUID updatedBy = UUID.fromString("f5124453-84d9-4410-af8e-645735fce629");
+
+        var ids = documentRepository.findAll().stream()
+                .map(document -> document.getId())
+                .toList();
+
+        ChangeDocumentStatusDto changeDocStatus = ChangeDocumentStatusDto.builder()
+                .documentIds(ids)
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/documents/submit/batch")
+                        .param("updatedBy", String.valueOf(updatedBy))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(changeDocStatus))
+                )
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].resultMessage", Matchers.is(SUCCESS.toString())))
+                .andExpect(jsonPath("$[1].resultMessage", Matchers.is(SUCCESS.toString())))
+                .andExpect(jsonPath("$[2].resultMessage", Matchers.is(SUCCESS.toString())))
+                .andReturn();
+
+        documentRepository.findAllById(ids).stream()
+                .forEach(document -> {
+                    assertEquals(document.getStatus().name(), SUBMITTED.name());
+                });
+    }
+
+    @Test
+    @Sql(value = "classpath:scripts/02_insert_docs_partialApprove.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void batchPartialApprove() throws Exception {
+        UUID updatedBy = UUID.fromString("f5124453-84d9-4410-af8e-645735fce629");
+
+        var ids = documentRepository.findAll().stream()
+                .map(document -> document.getId())
+                .toList();
+
+        ChangeDocumentStatusDto changeDocStatus = ChangeDocumentStatusDto.builder()
+                .documentIds(ids)
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/documents/approve/batch")
+                        .param("updatedBy", String.valueOf(updatedBy))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(changeDocStatus))
+                )
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].resultMessage", Matchers.is(CONFLICT_STATUS.toString())))
+                .andExpect(jsonPath("$[1].resultMessage", Matchers.is(SUCCESS.toString())))
+                .andExpect(jsonPath("$[2].resultMessage", Matchers.is(SUCCESS.toString())))
+                .andReturn();
+
+
+        var approvedDocs = documentRepository.findAllById(ids).stream()
+                .filter(document -> document.getStatus().equals(DocumentStatus.APPROVED))
+                .toList();
+
+        assertEquals(approvedDocs.size(), 2);
+        verify(registryRepository, times(2)).save(any());
+
+        var unapprovedDoc = documentRepository.findAllById(ids).stream()
+                .filter(document -> document.getStatus().equals(DocumentStatus.DRAFT))
+                .toList();
+        assertEquals(unapprovedDoc.size(), 1);
     }
 
     private Long createDocumentAndCheckResults(CreateDocumentMetadataDto createDocMetadata) throws Exception {
@@ -129,7 +230,7 @@ public class DocumentProcessingServiceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createDocMetadata))
                 )
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+                .andExpect(status().is2xxSuccessful());
 
         var createdDoc = documentRepository.findAll().stream().findFirst();
 
@@ -152,14 +253,14 @@ public class DocumentProcessingServiceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(changeDocStatus))
                 )
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
+                .andExpect(status().is2xxSuccessful())
                 .andReturn();
 
         var submittedDoc = documentRepository.findByDocId(changeDocStatus.getDocumentIds().stream().findFirst().get());
 
         assertFalse(submittedDoc.isEmpty());
         var updatedExistingDocument = submittedDoc.get();
-        assertEquals(DocumentStatus.SUBMITTED, updatedExistingDocument.getStatus());
+        assertEquals(SUBMITTED, updatedExistingDocument.getStatus());
         assertEquals(updatedExistingDocument.getId(), id);
         var submitHistory = updatedExistingDocument.getHistory().stream()
                 .filter(documentHistory -> documentHistory.getAction().name().equalsIgnoreCase(SUBMIT.name()))
@@ -174,7 +275,7 @@ public class DocumentProcessingServiceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(changeDocStatus))
                 )
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+                .andExpect(status().is2xxSuccessful());
 
         var finalDocObject = documentRepository.findByDocId(id);
 
@@ -198,13 +299,13 @@ public class DocumentProcessingServiceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(changeDocStatus))
                 )
-                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful());
+                .andExpect(status().is2xxSuccessful());
 
         var finalDocObject = documentRepository.findByDocId(id);
 
         assertFalse(finalDocObject.isEmpty());
         var existingFinalDocument = finalDocObject.get();
-        assertEquals(DocumentStatus.SUBMITTED.name(), existingFinalDocument.getStatus().name());
+        assertEquals(SUBMITTED.name(), existingFinalDocument.getStatus().name());
         assertEquals(existingFinalDocument.getId(), id);
 
         var approveHistory = existingFinalDocument.getHistory().stream()
@@ -214,6 +315,4 @@ public class DocumentProcessingServiceTest {
 
         return existingFinalDocument;
     }
-
-
 }

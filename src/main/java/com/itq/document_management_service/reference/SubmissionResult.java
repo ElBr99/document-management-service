@@ -1,6 +1,8 @@
 package com.itq.document_management_service.reference;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Data;
+
 
 public enum SubmissionResult {
     SUCCESS("Успешно"),

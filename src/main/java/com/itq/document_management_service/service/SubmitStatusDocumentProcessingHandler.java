@@ -20,7 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import static com.itq.document_management_service.reference.DocumentStatus.SUBMITTED;
-import static com.itq.document_management_service.reference.SubmissionResult.*;
+import static com.itq.document_management_service.reference.SubmissionResult.CONFLICT_STATUS;
+import static com.itq.document_management_service.reference.SubmissionResult.NOT_FOUND;
+import static com.itq.document_management_service.reference.SubmissionResult.SUCCESS;
+import static com.itq.document_management_service.reference.SubmissionResult.UPDATING_ERROR;
 import static com.itq.document_management_service.reference.UserAction.SUBMIT;
 
 @Component

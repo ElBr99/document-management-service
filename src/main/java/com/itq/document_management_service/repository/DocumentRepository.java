@@ -45,5 +45,4 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, JpaSp
             """)
     List<Long> findIdsByStatus(DocumentStatus status, Pageable pageable);
 
-
 }

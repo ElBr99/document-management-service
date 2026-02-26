@@ -89,6 +89,5 @@ public class ConcurrentApprovementTestApi {
             case CONFLICT_STATUS -> conflictCounter.incrementAndGet();
             default -> errorCounter.incrementAndGet();
         }
-
     }
 }

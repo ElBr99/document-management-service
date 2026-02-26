@@ -11,7 +11,6 @@ import java.util.List;
 @Repository
 public interface DocumentRegistryRepository extends JpaRepository<DocumentRegistry, Long> {
 
-
     @Query(value = "SELECT * FROM t_document_registry WHERE doc_id = :docId", nativeQuery = true)
     List<DocumentRegistry> findByDocId(@Param("docId")Long docId);
 
