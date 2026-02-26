@@ -1,7 +1,7 @@
 package com.itq.document_management_service.controller;
 
 import com.itq.document_management_service.dto.request.ConcurrencyTestApiDto;
-import com.itq.document_management_service.dto.response.DocumentResponse;
+import com.itq.document_management_service.dto.response.DocumentResponseDto;
 import com.itq.document_management_service.dto.response.SubmissionResultsDto;
 import com.itq.document_management_service.reference.SubmissionResult;
 import com.itq.document_management_service.service.DocumentProcessingService;
@@ -66,7 +66,7 @@ public class ConcurrentApprovementTestApi {
 
         Map<Long, Object> status = testApiDto.getDocIds().stream()
                 .map(documentProcessingService::getDocument)
-                .collect(Collectors.toMap(DocumentResponse::getId, DocumentResponse::getStatus));
+                .collect(Collectors.toMap(DocumentResponseDto::getId, DocumentResponseDto::getStatus));
 
 
         Map<String, Object> response = new HashMap<>();

@@ -3,10 +3,7 @@ package com.itq.document_management_service.model;
 import com.itq.document_management_service.reference.DocumentStatus;
 import com.itq.document_management_service.reference.UserAction;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -17,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 @Entity
+@ToString(exclude = {"document"})
 @Table(name = "t_document_registry")
 public class DocumentRegistry {
 
@@ -24,7 +22,6 @@ public class DocumentRegistry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "doc_id", nullable = false, unique = true)
     @OneToOne (cascade = CascadeType.REMOVE)
     @JoinColumn(name = "doc_id", referencedColumnName = "id")
     private Document document;
@@ -39,7 +36,6 @@ public class DocumentRegistry {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime registeredAt;
-
 
     @Column(name = "user_comment")
     private String comment;

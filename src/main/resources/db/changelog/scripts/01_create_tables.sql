@@ -15,21 +15,21 @@ CREATE TABLE t_document (
 -- Создание таблицы t_document_history
  CREATE TABLE t_document_history (
      id BIGSERIAL PRIMARY KEY,
-     doc_id UUID NOT NULL REFERENCES t_document(document_number) ON DELETE CASCADE,
+     doc_id BIGINT NOT NULL REFERENCES t_document(id) ON DELETE CASCADE,
      updated_by UUID NOT NULL,
      updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
      user_action VARCHAR(32) NOT NULL,
      user_comment TEXT,
-     CONSTRAINT check_user_action CHECK (action IN ('SUBMIT', 'APPROVE'))
+     CONSTRAINT check_user_action CHECK (user_action IN ('CREATE', 'SUBMIT', 'APPROVE'))
  );
 
  -- Создание таблицы t_document_registry
  CREATE TABLE t_document_registry (
      id BIGSERIAL PRIMARY KEY,
-     doc_id UUID NOT NULL UNIQUE REFERENCES t_document(document_number),
+     doc_id BIGINT NOT NULL UNIQUE REFERENCES t_document(id),
      status VARCHAR(32) NOT NULL,
      registered_by UUID NOT NULL,
      registered_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-     comment TEXT,
-     CONSTRAINT check_status CHECK (status IN ('SUBMITTED'))
+     user_comment TEXT,
+     CONSTRAINT check_status CHECK (status IN ('APPROVED'))
  );

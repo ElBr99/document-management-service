@@ -4,6 +4,7 @@ import com.itq.document_management_service.dto.request.DocumentStatusHistoryDto;
 import com.itq.document_management_service.dto.request.DocumentRegistryDto;
 import com.itq.document_management_service.dto.response.SubmissionResultsDto;
 import com.itq.document_management_service.exception.ChangeDocumentStatusConflictException;
+import com.itq.document_management_service.exception.DocumentNotFoundException;
 import com.itq.document_management_service.exception.DocumentRegistrySavingException;
 import com.itq.document_management_service.model.Document;
 import com.itq.document_management_service.reference.DocumentStatus;
@@ -15,9 +16,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import static com.itq.document_management_service.reference.DocumentStatus.*;
 import static com.itq.document_management_service.reference.DocumentStatus.APPROVED;
 import static com.itq.document_management_service.reference.SubmissionResult.*;
 import static com.itq.document_management_service.reference.SubmissionResult.UPDATING_ERROR;
@@ -36,18 +39,26 @@ public class ApproveStatusDocumentProcessingHandler implements DocumentStatusTra
         return APPROVE;
     }
 
+    @Transactional
     @Override
     public SubmissionResultsDto processDocumentStatusTransferring(Document foundDocument, UUID updatedBy) {
         try {
             ChangeDocumentStatusValidator.validateStatus(foundDocument.getStatus(), APPROVED);
-            createAndPublishEvent(foundDocument, updatedBy, APPROVE);
-            createAndPublishRegistryEvent(foundDocument, updatedBy, APPROVED);
-            documentRepository.updateStatusById(foundDocument.getId(), DocumentStatus.SUBMITTED, APPROVED);
+            var updatedDoc = documentRepository.updateStatusById(foundDocument.getId(), SUBMITTED.name(), APPROVED.name());
+
+            if (updatedDoc == null) {
+                throw new DocumentNotFoundException("Документ с таким id не найден");
+            }
+
+            createAndPublishEvent(updatedDoc, updatedBy, APPROVE);
+            createAndPublishRegistryEvent(updatedDoc, updatedBy, APPROVED);
             return buildSubmissionResultDto(foundDocument.getId(), SUCCESS);
         } catch (ChangeDocumentStatusConflictException exception) {
             return buildSubmissionResultDto(foundDocument.getId(), CONFLICT_STATUS);
         } catch (DocumentRegistrySavingException documentRegistrySavingException) {
             return buildSubmissionResultDto(foundDocument.getId(), DOCUMENT_REGISTRY_ERROR);
+        } catch (DocumentNotFoundException e) {
+            return buildSubmissionResultDto(foundDocument.getId(), NOT_FOUND);
         } catch (Exception e) {
             return buildSubmissionResultDto(foundDocument.getId(), UPDATING_ERROR);
         }
@@ -56,7 +67,7 @@ public class ApproveStatusDocumentProcessingHandler implements DocumentStatusTra
 
     private DocumentStatusHistoryDto buildFromDocument(Document document, UUID updatedBy, UserAction userAction) {
         return DocumentStatusHistoryDto.builder()
-                .document(document.getDocumentNumber())
+                .document(document)
                 .updatedBy(updatedBy)
                 .action(userAction)
                 .build();

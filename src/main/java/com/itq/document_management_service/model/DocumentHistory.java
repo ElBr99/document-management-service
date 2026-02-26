@@ -2,10 +2,7 @@ package com.itq.document_management_service.model;
 
 import com.itq.document_management_service.reference.UserAction;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
@@ -15,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@ToString(exclude = {"document"})
 @Entity
 @Table(name = "t_document_history")
 public class DocumentHistory {
@@ -22,7 +20,6 @@ public class DocumentHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "doc_id", nullable = false)
     @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "doc_id")
     private Document document;

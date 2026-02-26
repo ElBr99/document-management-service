@@ -10,12 +10,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Builder
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class DocumentResponse {
-
+@NoArgsConstructor
+@Builder
+public class DocumentResponseDto {
     private Long id;
     private UUID documentNumber;
     private UUID createdBy;

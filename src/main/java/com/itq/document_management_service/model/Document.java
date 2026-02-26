@@ -3,10 +3,7 @@ package com.itq.document_management_service.model;
 import com.itq.document_management_service.reference.DocumentStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -19,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 @Entity
+@ToString(exclude = {"history", "documentRegistry"})
 @Table(name = "t_document")
 public class Document {
 

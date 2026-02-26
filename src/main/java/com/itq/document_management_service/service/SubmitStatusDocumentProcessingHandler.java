@@ -3,6 +3,7 @@ package com.itq.document_management_service.service;
 import com.itq.document_management_service.dto.request.DocumentStatusHistoryDto;
 import com.itq.document_management_service.dto.response.SubmissionResultsDto;
 import com.itq.document_management_service.exception.ChangeDocumentStatusConflictException;
+import com.itq.document_management_service.exception.DocumentNotFoundException;
 import com.itq.document_management_service.model.Document;
 import com.itq.document_management_service.reference.DocumentStatus;
 import com.itq.document_management_service.reference.SubmissionResult;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.UUID;
@@ -34,13 +36,21 @@ public class SubmitStatusDocumentProcessingHandler implements DocumentStatusTran
         return SUBMIT;
     }
 
+    @Transactional
     @Override
     public SubmissionResultsDto processDocumentStatusTransferring(Document foundDocument, UUID updatedBy) {
         try {
             ChangeDocumentStatusValidator.validateStatus(foundDocument.getStatus(), SUBMITTED);
-            documentRepository.updateStatusById(foundDocument.getId(), DocumentStatus.DRAFT, SUBMITTED);
-            createAndPublishEvent(foundDocument, updatedBy, SUBMIT);
+            var updatedDoc = documentRepository.updateStatusById(foundDocument.getId(), DocumentStatus.DRAFT.name(), SUBMITTED.name());
+
+            if (updatedDoc == null) {
+                throw new DocumentNotFoundException("Документ с таким id не найден");
+            }
+
+            createAndPublishEvent(updatedDoc, updatedBy, SUBMIT);
             return buildSubmissionResultDto(foundDocument.getId(), SUCCESS);
+        } catch (DocumentNotFoundException e) {
+            return buildSubmissionResultDto(foundDocument.getId(), NOT_FOUND);
         } catch (ChangeDocumentStatusConflictException exception) {
             return buildSubmissionResultDto(foundDocument.getId(), CONFLICT_STATUS);
         } catch (Exception e) {
@@ -51,8 +61,8 @@ public class SubmitStatusDocumentProcessingHandler implements DocumentStatusTran
 
     private DocumentStatusHistoryDto buildFromDocument(Document document, UUID updatedBy, UserAction userAction) {
         return DocumentStatusHistoryDto.builder()
-                .id(document.getId())
-                .document(document.getDocumentNumber())
+                //.id(document.getId())
+                .document(document)
                 .updatedBy(updatedBy)
                 .action(userAction)
                 .build();

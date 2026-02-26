@@ -3,7 +3,7 @@ package com.itq.document_management_service.controller;
 import com.itq.document_management_service.dto.AbstractResponseDto;
 import com.itq.document_management_service.dto.request.CreateDocumentMetadataDto;
 import com.itq.document_management_service.dto.request.ChangeDocumentStatusDto;
-import com.itq.document_management_service.dto.response.DocumentResponse;
+import com.itq.document_management_service.dto.response.DocumentResponseDto;
 import com.itq.document_management_service.dto.response.SubmissionResultsDto;
 import com.itq.document_management_service.dto.response.SuccessResponseDto;
 import com.itq.document_management_service.reference.UserAction;
@@ -67,7 +67,7 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DocumentResponse> getDocument(@PathVariable Long id) {
+    public ResponseEntity<DocumentResponseDto> getDocument(@PathVariable Long id) {
 
         log.info("Поступил запрос на поиск документ с id: {}", id);
         var response = documentProcessingService.getDocument(id);
@@ -77,7 +77,7 @@ public class DocumentController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<DocumentResponse>> getDocuments(@RequestParam List<Long> ids,
+    public ResponseEntity<Page<DocumentResponseDto>> getDocuments(@RequestParam List<Long> ids,
                                                                @PageableDefault(size = 10) Pageable pageable) {
 
         log.info("Поступил запрос на поиск {} элементов", ids.size());

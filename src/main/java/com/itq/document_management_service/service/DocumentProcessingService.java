@@ -1,8 +1,9 @@
 package com.itq.document_management_service.service;
 
+import com.itq.document_management_service.dto.request.DocumentSearchRequest;
 import com.itq.document_management_service.dto.request.DocumentStatusHistoryDto;
 import com.itq.document_management_service.dto.request.CreateDocumentMetadataDto;
-import com.itq.document_management_service.dto.response.DocumentResponse;
+import com.itq.document_management_service.dto.response.DocumentResponseDto;
 import com.itq.document_management_service.dto.response.SubmissionResultsDto;
 import com.itq.document_management_service.exception.DocumentNotFoundException;
 import com.itq.document_management_service.mapper.DocumentMapper;
@@ -24,6 +25,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.itq.document_management_service.reference.SubmissionResult.*;
+import static com.itq.document_management_service.repository.spec.DocumentSpecification.from;
 
 @Service
 @Slf4j
@@ -48,8 +50,8 @@ public class DocumentProcessingService {
 
 
     @Transactional(readOnly = true)
-    public DocumentResponse getDocument(Long id) {
-        var foundDoc = documentRepository.findById(id)
+    public DocumentResponseDto getDocument(Long id) {
+        var foundDoc = documentRepository.findByDocId(id)
                 .orElseThrow(() -> new DocumentNotFoundException("Документ по id: " + id + " не найден"));
 
         log.info("Документ по id: {} успешно найден", id);
@@ -58,7 +60,7 @@ public class DocumentProcessingService {
 
 
     @Transactional(readOnly = true)
-    public Page<DocumentResponse> getDocuments(List<Long> ids, Pageable pageable) {
+    public Page<DocumentResponseDto> getDocuments(List<Long> ids, Pageable pageable) {
         log.info("Получение документов: ids.size={}, page={}, size={}",
                 ids.size(), pageable.getPageNumber(), pageable.getPageSize());
 
@@ -69,11 +71,12 @@ public class DocumentProcessingService {
     }
 
 
+    @Transactional
     public void createDocument(CreateDocumentMetadataDto createDocumentMetadataDto) {
         log.info("Происходит создание документа");
 
         Document createdDocument = documentMapper.mapToDocument(createDocumentMetadataDto);
-        createAndPublishEvent(createdDocument, createDocumentMetadataDto.getCreatedBy(), UserAction.DRAFT);
+        createAndPublishEvent(createdDocument, createDocumentMetadataDto.getCreatedBy(), UserAction.CREATE);
 
         documentRepository.save(createdDocument);
         log.info("Документ успешно создан");
@@ -108,8 +111,7 @@ public class DocumentProcessingService {
 
     private DocumentStatusHistoryDto buildFromDocument(Document document, UUID updatedBy, UserAction userAction) {
         return DocumentStatusHistoryDto.builder()
-                .id(document.getId())
-                .document(document.getDocumentNumber())
+                .document(document)
                 .updatedBy(updatedBy)
                 .action(userAction)
                 .build();
@@ -119,5 +121,11 @@ public class DocumentProcessingService {
     private void createAndPublishEvent(Document document, UUID updatedBy, UserAction userAction) {
         var changedStatusDto = buildFromDocument(document, updatedBy, userAction);
         applicationEventPublisher.publishEvent(changedStatusDto);
+    }
+
+
+    public Page<DocumentResponseDto> findByFilter(DocumentSearchRequest req, Pageable pageable) {
+        return documentRepository.findAll(from(req), pageable)
+                .map(documentMapper::mapWithoutHistoryFromDoc);
     }
 }
