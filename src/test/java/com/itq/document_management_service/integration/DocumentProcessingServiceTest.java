@@ -41,7 +41,6 @@ import static com.itq.document_management_service.reference.UserAction.SUBMIT;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
@@ -145,7 +144,7 @@ public class DocumentProcessingServiceTest {
                 .save(ArgumentMatchers.any(DocumentRegistry.class));
 
 
-        approveDocumentWithExceptionResult(changeDocStatus, updatedBy, createdDocumentId);
+        approveDocumentWithRollback(changeDocStatus, updatedBy, createdDocumentId);
 
         assertTrue(registryRepository.findAll().isEmpty());
     }
@@ -293,7 +292,7 @@ public class DocumentProcessingServiceTest {
         return existingFinalDocument;
     }
 
-    private Document approveDocumentWithExceptionResult(ChangeDocumentStatusDto changeDocStatus, UUID updatedBy, Long id) throws Exception {
+    private Document approveDocumentWithRollback(ChangeDocumentStatusDto changeDocStatus, UUID updatedBy, Long id) throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.post("/api/documents/approve/batch")
                         .param("updatedBy", String.valueOf(updatedBy))
                         .contentType(MediaType.APPLICATION_JSON)

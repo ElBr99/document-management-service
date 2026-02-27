@@ -5,7 +5,9 @@ import com.itq.document_management_service.dto.request.DocumentStatusHistoryDto;
 import com.itq.document_management_service.dto.request.CreateDocumentMetadataDto;
 import com.itq.document_management_service.dto.response.DocumentResponseDto;
 import com.itq.document_management_service.dto.response.SubmissionResultsDto;
+import com.itq.document_management_service.exception.ChangeDocumentStatusConflictException;
 import com.itq.document_management_service.exception.DocumentNotFoundException;
+import com.itq.document_management_service.exception.DocumentRegistrySavingException;
 import com.itq.document_management_service.mapper.DocumentMapper;
 import com.itq.document_management_service.model.Document;
 import com.itq.document_management_service.reference.SubmissionResult;
@@ -24,7 +26,11 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.itq.document_management_service.reference.SubmissionResult.CONFLICT_STATUS;
+import static com.itq.document_management_service.reference.SubmissionResult.DOCUMENT_REGISTRY_ERROR;
 import static com.itq.document_management_service.reference.SubmissionResult.NOT_FOUND;
+import static com.itq.document_management_service.reference.SubmissionResult.SUCCESS;
+import static com.itq.document_management_service.reference.SubmissionResult.UPDATING_ERROR;
 import static com.itq.document_management_service.repository.spec.DocumentSpecification.from;
 
 @Service
@@ -96,7 +102,18 @@ public class DocumentProcessingService {
                     if (document == null) {
                         return buildSubmissionResultDto(id, NOT_FOUND);
                     }
-                    return documentStatusProcessingHandlers.get(userAction).processDocumentStatusTransferring(document, updatedBy);
+                    try {
+                        var updatedDoc = documentStatusProcessingHandlers.get(userAction).processDocumentStatusTransferring(document, updatedBy);
+                        return buildSubmissionResultDto(updatedDoc.getId(), SUCCESS);
+                    } catch (ChangeDocumentStatusConflictException exception) {
+                        return buildSubmissionResultDto(document.getId(), CONFLICT_STATUS);
+                    } catch (DocumentRegistrySavingException documentRegistrySavingException) {
+                        return buildSubmissionResultDto(document.getId(), DOCUMENT_REGISTRY_ERROR);
+                    } catch (DocumentNotFoundException e) {
+                        return buildSubmissionResultDto(document.getId(), NOT_FOUND);
+                    } catch (Exception e) {
+                        return buildSubmissionResultDto(document.getId(), UPDATING_ERROR);
+                    }
                 })
                 .toList();
     }
