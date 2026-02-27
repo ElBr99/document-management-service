@@ -3,6 +3,7 @@ package com.itq.document_management_service.controller;
 import com.itq.document_management_service.dto.AbstractResponseDto;
 import com.itq.document_management_service.dto.request.CreateDocumentMetadataDto;
 import com.itq.document_management_service.dto.request.ChangeDocumentStatusDto;
+import com.itq.document_management_service.dto.request.DocumentSearchRequest;
 import com.itq.document_management_service.dto.response.DocumentResponseDto;
 import com.itq.document_management_service.dto.response.SubmissionResultsDto;
 import com.itq.document_management_service.dto.response.SuccessResponseDto;
@@ -78,7 +79,7 @@ public class DocumentController {
 
     @GetMapping
     public ResponseEntity<Page<DocumentResponseDto>> getDocuments(@RequestParam List<Long> ids,
-                                                               @PageableDefault(size = 10) Pageable pageable) {
+                                                                  @PageableDefault(size = 10) Pageable pageable) {
 
         log.info("Поступил запрос на поиск {} элементов", ids.size());
 
@@ -87,11 +88,18 @@ public class DocumentController {
                 Sort.Order.asc("title")
         );
 
-        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),sort);
+        Pageable pageableWithSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
         var response = documentProcessingService.getDocuments(ids, pageableWithSort);
 
         log.info("Запрос успешно обработан. Кол-во найденных элементов: {}", response.getTotalElements());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<DocumentResponseDto>> search(
+            DocumentSearchRequest req,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(documentProcessingService.findByFilter(req, pageable));
     }
 }

@@ -9,4 +9,9 @@
         <sqlFile path="scripts/01_create_tables.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
+    <!-- ChangeSet 1: Создание индексов-->
+    <changeSet id="2" author="elizaveta.bredikhina" context="postgres">
+        <sqlFile path="scripts/02_create_indexes.sql" relativeToChangelogFile="true"/>
+    </changeSet>
+
 </databaseChangeLog>

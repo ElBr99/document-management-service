@@ -1,6 +1,6 @@
 -- Создание таблицы t_document
 
-CREATE TABLE t_document (
+CREATE TABLE IF NOT EXISTS t_document (
     id BIGSERIAL PRIMARY KEY,
     document_number UUID NOT NULL UNIQUE,
     created_by UUID NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE t_document (
 );
 
 -- Создание таблицы t_document_history
- CREATE TABLE t_document_history (
+ CREATE TABLE IF NOT EXISTS t_document_history (
      id BIGSERIAL PRIMARY KEY,
      doc_id BIGINT NOT NULL REFERENCES t_document(id) ON DELETE CASCADE,
      updated_by UUID NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE t_document (
  );
 
  -- Создание таблицы t_document_registry
- CREATE TABLE t_document_registry (
+ CREATE TABLE IF NOT EXISTS t_document_registry (
      id BIGSERIAL PRIMARY KEY,
      doc_id BIGINT NOT NULL UNIQUE REFERENCES t_document(id),
      status VARCHAR(32) NOT NULL,
