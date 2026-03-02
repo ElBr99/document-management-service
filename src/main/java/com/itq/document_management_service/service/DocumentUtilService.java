@@ -19,13 +19,21 @@ public class DocumentUtilService {
     private final GenerateDocumentProperties properties;
 
     public void generateDocuments() {
+        log.info("Поступил запрос на создание {} документов через утилиту", properties.getBatchSize());
+
         range(0, properties.getBatchSize()).forEach(iterationNumber -> {
             CreateDocumentMetadataDto createDocumentMetadataDto = new CreateDocumentMetadataDto(
                     properties.getCreatedBy(),
                     properties.getTitle() + UUID.randomUUID()
             );
 
-            documentProcessingService.createDocument(createDocumentMetadataDto);
+            try {
+                log.info("Создаётся документ с названием {}", createDocumentMetadataDto.getTitle());
+                documentProcessingService.createDocument(createDocumentMetadataDto);
+                log.info("Документ с названием {} успешно создан", createDocumentMetadataDto.getTitle());
+            } catch (Exception e) {
+                log.error("Документ с названием {} не может быть создан по причине : {}", createDocumentMetadataDto.getTitle(), e.getMessage());
+            }
         });
     }
 }
