@@ -25,5 +25,5 @@ Testcontainers для интеграционных тестов
 - выполнить в терминале IntelliJ IDEA команду: docker compose up -d --build
 
 2. Сам backend-микросервис (запуск кнопкой Run)
-![img_1.png](img_1.png)
 ```
+![img_1.png](img_1.png)
