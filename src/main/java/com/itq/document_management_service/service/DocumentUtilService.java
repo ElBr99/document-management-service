@@ -19,7 +19,7 @@ public class DocumentUtilService {
     private final GenerateDocumentProperties properties;
 
     public void generateDocuments() {
-        log.info("Поступил запрос на создание {} документов через утилиту", properties.getBatchSize());
+        log.info("Обработка запроса на генерацию {} документов через утилиту", properties.getBatchSize());
 
         range(0, properties.getBatchSize()).forEach(iterationNumber -> {
             CreateDocumentMetadataDto createDocumentMetadataDto = new CreateDocumentMetadataDto(
