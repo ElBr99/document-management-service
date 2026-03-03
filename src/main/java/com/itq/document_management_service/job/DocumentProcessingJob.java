@@ -1,12 +1,6 @@
 package com.itq.document_management_service.job;
 
-import static com.itq.document_management_service.reference.DocumentStatus.APPROVED;
-import static com.itq.document_management_service.reference.DocumentStatus.SUBMITTED;
-import static com.itq.document_management_service.reference.UserAction.*;
-import static org.springframework.data.domain.Pageable.ofSize;
-
 import com.itq.document_management_service.config.properties.DocumentJobProperties;
-import com.itq.document_management_service.reference.UserAction;
 import com.itq.document_management_service.repository.DocumentRepository;
 import com.itq.document_management_service.service.DocumentProcessingService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +9,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.itq.document_management_service.reference.DocumentStatus.DRAFT;
+import static com.itq.document_management_service.reference.DocumentStatus.SUBMITTED;
+import static com.itq.document_management_service.reference.UserAction.APPROVE;
+import static com.itq.document_management_service.reference.UserAction.SUBMIT;
+import static org.springframework.data.domain.Pageable.ofSize;
 
 @Slf4j
 @Component
@@ -28,7 +28,7 @@ public class DocumentProcessingJob {
     @Scheduled(cron = "${document.job.move-to-submitted.cron}")
     public void moveToSubmitted() {
         List<Long> ids = documentRepository.findIdsByStatus(
-                SUBMITTED, ofSize(documentJobProperties.getMoveToSubmittedBatchSize())
+                DRAFT, ofSize(documentJobProperties.getMoveToSubmittedBatchSize())
         );
 
         documentProcessingService.processDocuments(SUBMIT, ids, documentJobProperties.getUpdatedBy());
@@ -38,7 +38,7 @@ public class DocumentProcessingJob {
     @Scheduled(cron = "${document.job.move-to-approved.cron}")
     public void moveToApproved() {
         List<Long> ids = documentRepository.findIdsByStatus(
-                APPROVED, ofSize(documentJobProperties.getMoveToApprovedBatchSize())
+                SUBMITTED, ofSize(documentJobProperties.getMoveToApprovedBatchSize())
         );
 
         documentProcessingService.processDocuments(APPROVE, ids, documentJobProperties.getUpdatedBy());

@@ -37,5 +37,6 @@ public class DocumentUtilService {
                 log.error("Документ с названием {} не может быть создан по причине : {}", createDocumentMetadataDto.getTitle(), e.getMessage());
             }
         });
+        log.info("Обработка запроса на генерацию {} документов через утилиту завершена", properties.getBatchSize());
     }
 }
