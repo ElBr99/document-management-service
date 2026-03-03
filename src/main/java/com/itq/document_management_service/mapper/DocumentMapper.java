@@ -16,7 +16,7 @@ public interface DocumentMapper {
 
     DocumentResponseDto mapWithHistoryFromDocument(Document document);
 
-    @Mapping(target="history", ignore = true)
+    @Mapping(target = "history", ignore = true)
     DocumentResponseDto mapWithoutHistoryFromDoc(Document document);
 
 }

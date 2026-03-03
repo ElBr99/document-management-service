@@ -21,7 +21,7 @@ public class DocumentUtilController {
     private final DocumentUtilService documentUtilService;
 
     @PostMapping("/generate-documents")
-    public ResponseEntity<AbstractResponseDto> createDocument () {
+    public ResponseEntity<AbstractResponseDto> createDocument() {
         log.info("Поступил запрос на генерацию документов");
         documentUtilService.generateDocuments();
         return ResponseEntity.ok(new SuccessResponseDto("Документы успешно созданы в системе"));

@@ -12,5 +12,5 @@ import org.springframework.stereotype.Component;
 public interface DocumentRegistryMapper {
     DocumentRegistry mapToDocumentRegistry(DocumentRegistryDto documentRegistryDto);
 
-    DocumentRegistryDto mapFromDocument (Document document);
+    DocumentRegistryDto mapFromDocument(Document document);
 }

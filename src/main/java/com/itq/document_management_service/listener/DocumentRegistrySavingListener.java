@@ -16,7 +16,7 @@ import static org.springframework.transaction.event.TransactionPhase.BEFORE_COMM
 @Slf4j
 public class DocumentRegistrySavingListener {
     private final DocumentRegistryRepository documentRegistryRepository;
-    private final DocumentRegistryMapper  documentRegistryMapper;
+    private final DocumentRegistryMapper documentRegistryMapper;
 
     @TransactionalEventListener(phase = BEFORE_COMMIT)
     public void addApprovedDocumentToRegistry(DocumentRegistryDto documentRegistryDto) {
@@ -31,7 +31,4 @@ public class DocumentRegistrySavingListener {
         }
 
     }
-
-
-
 }

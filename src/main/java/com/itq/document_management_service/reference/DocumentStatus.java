@@ -13,11 +13,11 @@ public enum DocumentStatus {
     static {
 
         DRAFT.possibleNext = Set.of(SUBMITTED);
-        SUBMITTED.possibleNext=Set.of(APPROVED);
+        SUBMITTED.possibleNext = Set.of(APPROVED);
 
     }
 
-    public boolean canTransitionTo (DocumentStatus documentStatusNext) {
+    public boolean canTransitionTo(DocumentStatus documentStatusNext) {
         return this.possibleNext.contains(documentStatusNext);
     }
 

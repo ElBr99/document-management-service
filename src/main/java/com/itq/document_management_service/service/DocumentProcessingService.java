@@ -87,7 +87,7 @@ public class DocumentProcessingService {
         createAndPublishEvent(createdDocument, createDocumentMetadataDto.getCreatedBy(), UserAction.CREATE);
 
         var doc = documentRepository.save(createdDocument);
-        log.info("Документ c title {} и documentNumber {} успешно создан",doc.getTitle(), doc.getDocumentNumber());
+        log.info("Документ c title {} и documentNumber {} успешно создан", doc.getTitle(), doc.getDocumentNumber());
     }
 
     @LogDocumentProceeding

@@ -9,7 +9,7 @@ public enum SubmissionResult {
     CONFLICT_STATUS("Конфликт статусов документа"),
     NOT_FOUND("Не найдено"),
     UPDATING_ERROR("Ошибка при обновлении"),
-    DOCUMENT_REGISTRY_ERROR ("Ошибка регистрации в реестре");
+    DOCUMENT_REGISTRY_ERROR("Ошибка регистрации в реестре");
 
 
     private final String resultName;

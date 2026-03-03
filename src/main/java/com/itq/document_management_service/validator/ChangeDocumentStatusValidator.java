@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ChangeDocumentStatusValidator {
 
-    public static void validateStatus (DocumentStatus previous, DocumentStatus changeTo) {
-        if (!previous.canTransitionTo(changeTo))  {
+    public static void validateStatus(DocumentStatus previous, DocumentStatus changeTo) {
+        if (!previous.canTransitionTo(changeTo)) {
             throw new ChangeDocumentStatusConflictException(ApiAnswerConstants.CONFLICT_ERROR + " нельзя изменить статус " + previous.name() + " на статус " + changeTo.name());
         }
     }

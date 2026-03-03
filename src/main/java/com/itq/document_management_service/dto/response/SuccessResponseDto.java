@@ -11,8 +11,7 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor
 public class SuccessResponseDto extends AbstractResponseDto {
 
-    public SuccessResponseDto (String message) {
+    public SuccessResponseDto(String message) {
         super(HttpStatus.OK, message);
-
     }
 }

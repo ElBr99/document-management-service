@@ -7,9 +7,6 @@ import com.itq.document_management_service.reference.UserAction;
 import java.util.UUID;
 
 public interface DocumentStatusTransferring {
-
     UserAction getAction();
-
     Document processDocumentStatusTransferring(Document foundDocument, UUID updatedBy);
-
 }

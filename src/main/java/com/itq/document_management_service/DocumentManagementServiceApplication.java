@@ -8,8 +8,8 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class DocumentManagementServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(DocumentManagementServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(DocumentManagementServiceApplication.class, args);
+    }
 
 }

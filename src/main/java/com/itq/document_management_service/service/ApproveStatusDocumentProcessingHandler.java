@@ -1,6 +1,5 @@
 package com.itq.document_management_service.service;
 
-import com.itq.document_management_service.aspect.LogDocumentProceeding;
 import com.itq.document_management_service.dto.request.DocumentStatusHistoryDto;
 import com.itq.document_management_service.dto.request.DocumentRegistryDto;
 import com.itq.document_management_service.model.Document;
