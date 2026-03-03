@@ -102,8 +102,15 @@ document.job.move-to-approved-batch-size=50
  [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод generateDocuments выполнен за 2484 мс >>>
  ```
 
+## Запуск тестов
 
+Тесты интеграционные написаны с использованием Testcontainers. Перед запуском тестов Docker должен быть запущен.
 
-
-
+Тесты написаны на все кейсы в соответсвии с ТЗ:
+```
+happy-path по одному документу, 
+пакетный submit, 
+пакетный approve с частичными результатами, 
+откат approve при ошибке записи в реестр утверждений
+```
  
