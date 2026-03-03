@@ -1,5 +1,6 @@
 package com.itq.document_management_service.service;
 
+import com.itq.document_management_service.aspect.LogDocumentProceeding;
 import com.itq.document_management_service.config.properties.GenerateDocumentProperties;
 import com.itq.document_management_service.dto.request.CreateDocumentMetadataDto;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ public class DocumentUtilService {
     private final DocumentProcessingService documentProcessingService;
     private final GenerateDocumentProperties properties;
 
+    @LogDocumentProceeding
     public void generateDocuments() {
         log.info("Обработка запроса на генерацию {} документов через утилиту", properties.getBatchSize());
 

@@ -141,8 +141,7 @@ public class DocumentProcessingServiceTest {
 
         doThrow(RuntimeException.class)
                 .when(registryRepository)
-                .save(ArgumentMatchers.any(DocumentRegistry.class));
-
+                .saveAndFlush(ArgumentMatchers.any(DocumentRegistry.class));
 
         approveDocumentWithRollback(changeDocStatus, updatedBy, createdDocumentId);
 
@@ -215,7 +214,7 @@ public class DocumentProcessingServiceTest {
                 .toList();
 
         assertEquals(approvedDocs.size(), 2);
-        verify(registryRepository, times(2)).save(any());
+        verify(registryRepository, times(2)).saveAndFlush(any());
 
         var unapprovedDoc = documentRepository.findAllById(ids).stream()
                 .filter(document -> document.getStatus().equals(DocumentStatus.DRAFT))

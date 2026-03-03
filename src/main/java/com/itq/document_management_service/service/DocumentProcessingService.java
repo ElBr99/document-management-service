@@ -1,5 +1,6 @@
 package com.itq.document_management_service.service;
 
+import com.itq.document_management_service.aspect.LogDocumentProceeding;
 import com.itq.document_management_service.dto.request.DocumentSearchRequest;
 import com.itq.document_management_service.dto.request.DocumentStatusHistoryDto;
 import com.itq.document_management_service.dto.request.CreateDocumentMetadataDto;
@@ -77,6 +78,7 @@ public class DocumentProcessingService {
     }
 
 
+    @LogDocumentProceeding
     @Transactional
     public void createDocument(CreateDocumentMetadataDto createDocumentMetadataDto) {
         log.info("Происходит создание документа");
@@ -88,6 +90,7 @@ public class DocumentProcessingService {
         log.info("Документ успешно создан");
     }
 
+    @LogDocumentProceeding
     public List<SubmissionResultsDto> processDocuments(UserAction userAction, List<Long> documentIds, UUID updatedBy) {
 
         List<Document> foundDocuments = documentRepository.findAllById(documentIds);

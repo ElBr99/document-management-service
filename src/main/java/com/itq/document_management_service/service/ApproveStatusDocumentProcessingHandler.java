@@ -1,5 +1,6 @@
 package com.itq.document_management_service.service;
 
+import com.itq.document_management_service.aspect.LogDocumentProceeding;
 import com.itq.document_management_service.dto.request.DocumentStatusHistoryDto;
 import com.itq.document_management_service.dto.request.DocumentRegistryDto;
 import com.itq.document_management_service.model.Document;
@@ -32,16 +33,19 @@ public class ApproveStatusDocumentProcessingHandler implements DocumentStatusTra
         return APPROVE;
     }
 
+
     @Transactional
     @Override
     public Document processDocumentStatusTransferring(Document foundDocument, UUID updatedBy) {
-            ChangeDocumentStatusValidator.validateStatus(foundDocument.getStatus(), APPROVED);
-            var updatedDoc = documentRepository.updateStatusById(foundDocument.getId(), SUBMITTED.name(), APPROVED.name());
+        log.info("Обработка запроса на перевод статуса документа c documentNumber {} из статуса {} в {}", foundDocument.getDocumentNumber(), foundDocument.getStatus().name(), APPROVED);
+        ChangeDocumentStatusValidator.validateStatus(foundDocument.getStatus(), APPROVED);
+        var updatedDoc = documentRepository.updateStatusById(foundDocument.getId(), SUBMITTED.name(), APPROVED.name());
 
-            createAndPublishEvent(updatedDoc, updatedBy, APPROVE);
-            createAndPublishRegistryEvent(updatedDoc, updatedBy, APPROVED);
+        createAndPublishEvent(updatedDoc, updatedBy, APPROVE);
+        createAndPublishRegistryEvent(updatedDoc, updatedBy, APPROVED);
 
-            return updatedDoc;
+        log.info("Документ c documentNumber {} успешно переведен в статус {}", foundDocument.getDocumentNumber(), updatedDoc.getStatus().name());
+        return updatedDoc;
     }
 
 

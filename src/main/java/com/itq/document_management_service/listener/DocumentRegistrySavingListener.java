@@ -23,7 +23,7 @@ public class DocumentRegistrySavingListener {
         log.info("Осуществляется сохранение информации в реестр утверждений по документу с documentNumber {}", documentRegistryDto.getDocument().getDocumentNumber());
         var docForSaving = documentRegistryMapper.mapToDocumentRegistry(documentRegistryDto);
         try {
-            documentRegistryRepository.save(docForSaving);
+            documentRegistryRepository.saveAndFlush(docForSaving);
             log.info("Документ с documentNumber {} успешно сохранен в реестре утверждений", docForSaving.getDocument().getDocumentNumber());
         } catch (Exception e) {
             log.error("Документ с documentNumber {} не может быть сохранен в реестр утверждений", docForSaving.getDocument().getDocumentNumber());
@@ -31,5 +31,7 @@ public class DocumentRegistrySavingListener {
         }
 
     }
+
+
 
 }

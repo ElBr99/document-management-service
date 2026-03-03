@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="LOKI_JSON"/>
+    </root>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>&lt;&lt;&lt; [%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}] [%-5level] [document-management-app] [%X{traceId:-},%X{spanId:-}] [%thread] [%logger{36}] : %msg &gt;&gt;&gt;%n</pattern>
+        </encoder>
+    </appender>
+
+</configuration>
