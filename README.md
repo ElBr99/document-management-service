@@ -64,3 +64,46 @@ document.job.move-to-approved.cron=0 0/10 * * * ?
 document.job.move-to-submitted-batch-size=100
 document.job.move-to-approved-batch-size=50
 ```
+
+## Отслеживание по логам
+```
+ [http-nio-8083-exec-2] [c.i.d.c.DocumentUtilController] : Поступил запрос на генерацию документов >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод generateDocuments начал свое выполнение в 2026-03-03T11:35:38.604Z >>>
+ [http-nio-8083-exec-2] [c.i.d.service.DocumentUtilService] : Обработка запроса на генерацию 100 документов через утилиту >>>
+ [http-nio-8083-exec-2] [c.i.d.service.DocumentUtilService] : Создаётся документ с названием "????????_"12b1922a-e351-4d3d-811b-a18a6cb03395 >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод createDocument начал свое выполнение в 2026-03-03T11:35:38.622Z >>>
+ [http-nio-8083-exec-2] [c.i.d.s.DocumentProcessingService] : Происходит создание документа c title "????????_"12b1922a-e351-4d3d-811b-a18a6cb03395 >>>
+ [http-nio-8083-exec-2] [c.i.d.s.DocumentProcessingService] : Документ c title "????????_"12b1922a-e351-4d3d-811b-a18a6cb03395 и documentNumber b27fc769-b755-42a6-b20d-f9fcc6ef1590 успешно создан >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод createDocument закончил свое выполнение в 2026-03-03T11:35:38.781Z >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод createDocument выполнен за 159 мс >>>
+ [http-nio-8083-exec-2] [c.i.d.l.DocumentStatusChangingListener] : Осуществляется сохранение истории по смене статуса по документу с title "????????_"12b1922a-e351-4d3d-811b-a18a6cb03395 и documentNumber b27fc769-b755-42a6-b20d-f9fcc6ef1590 >>>
+ [http-nio-8083-exec-2] [c.i.d.l.DocumentStatusChangingListener] : История по смене статуса документа с documentNumber Document(id=201, documentNumber=b27fc769-b755-42a6-b20d-f9fcc6ef1590, createdBy=eeb0311f-4074-452c-a68b-b2faaf093423, title="????????_"12b1922a-e351-4d3d-811b-a18a6cb03395, status=DRAFT, createdAt=2026-03-03T14:35:38.686312, updatedAt=2026-03-03T14:35:38.686312) успешно сохранена >>>
+
+ [http-nio-8083-exec-2] [c.i.d.service.DocumentUtilService] : Создаётся документ с названием "????????_"7455da44-5cd7-47a9-bf2d-2cdb055a8a64 >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод createDocument начал свое выполнение в 2026-03-03T11:35:38.862Z >>>
+ [http-nio-8083-exec-2] [c.i.d.s.DocumentProcessingService] : Происходит создание документа c title "????????_"7455da44-5cd7-47a9-bf2d-2cdb055a8a64 >>>
+ [http-nio-8083-exec-2] [c.i.d.s.DocumentProcessingService] : Документ c title "????????_"7455da44-5cd7-47a9-bf2d-2cdb055a8a64 и documentNumber 3ee8c493-bf45-49f7-abe4-4c801d4af60d успешно создан >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод createDocument закончил свое выполнение в 2026-03-03T11:35:38.869Z >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод createDocument выполнен за 7 мс >>>
+ [http-nio-8083-exec-2] [c.i.d.l.DocumentStatusChangingListener] : Осуществляется сохранение истории по смене статуса по документу с title "????????_"7455da44-5cd7-47a9-bf2d-2cdb055a8a64 и documentNumber 3ee8c493-bf45-49f7-abe4-4c801d4af60d >>>
+ [http-nio-8083-exec-2] [c.i.d.l.DocumentStatusChangingListener] : История по смене статуса документа с documentNumber Document(id=202, documentNumber=3ee8c493-bf45-49f7-abe4-4c801d4af60d, createdBy=eeb0311f-4074-452c-a68b-b2faaf093423, title="????????_"7455da44-5cd7-47a9-bf2d-2cdb055a8a64, status=DRAFT, createdAt=2026-03-03T14:35:38.864105, updatedAt=2026-03-03T14:35:38.864661) успешно сохранена >>>
+ ...
+ ...
+ [http-nio-8083-exec-2] [c.i.d.service.DocumentUtilService] : Создано 10 из 100 документов (10%) >>>
+ [http-nio-8083-exec-2] [c.i.d.service.DocumentUtilService] : Создаётся документ с названием "????????_"3d081160-9220-46c3-827a-df696e2b1ddc >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод createDocument начал свое выполнение в 2026-03-03T11:35:39.057Z >>>
+ [http-nio-8083-exec-2] [c.i.d.s.DocumentProcessingService] : Происходит создание документа c title "????????_"3d081160-9220-46c3-827a-df696e2b1ddc >>>
+ ...
+ [http-nio-8083-exec-2] [c.i.d.service.DocumentUtilService] : Создано 40 из 100 документов (40%) >>>
+ ...
+ [http-nio-8083-exec-2] [c.i.d.service.DocumentUtilService] : Создано 100 из 100 документов (100%) >>>
+ [http-nio-8083-exec-2] [c.i.d.service.DocumentUtilService] : Обработка запроса на генерацию 100 документов через утилиту завершена, успешно создано 100 >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод generateDocuments закончил свое выполнение в 2026-03-03T11:35:41.088Z >>>
+ [http-nio-8083-exec-2] [c.i.d.a.DocumentProceedingAspect] : Метод generateDocuments выполнен за 2484 мс >>>
+ ```
+
+
+
+
+
+ 

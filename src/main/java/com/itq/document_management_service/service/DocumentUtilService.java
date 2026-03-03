@@ -38,7 +38,6 @@ public class DocumentUtilService {
                 documentProcessingService.createDocument(createDocumentMetadataDto);
                 createdCount.getAndIncrement();
 
-                log.info("Документ с названием {} успешно создан", createDocumentMetadataDto.getTitle());
                 logProgress(properties.getBatchSize(), iterationNumber);
             } catch (Exception e) {
                 log.error("Документ с названием {} не может быть создан по причине : {}", createDocumentMetadataDto.getTitle(), e.getMessage());

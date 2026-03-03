@@ -20,7 +20,7 @@ public class DocumentStatusChangingListener {
 
     @TransactionalEventListener(phase = BEFORE_COMMIT)
     public void addChangedDocumentStatusToHistory(DocumentStatusHistoryDto changeDocumentStatusDto) {
-        log.info("Осуществляется сохранение истории по смене статуса по документу с documentNumber {}", changeDocumentStatusDto.getDocument());
+        log.info("Осуществляется сохранение истории по смене статуса по документу с title {} и documentNumber {}", changeDocumentStatusDto.getDocument().getTitle(), changeDocumentStatusDto.getDocument().getDocumentNumber());
         var docHistoryForSaving = documentHistoryMapper.mapToDocument(changeDocumentStatusDto);
         documentHistoryRepository.save(docHistoryForSaving);
         log.info("История по смене статуса документа с documentNumber {} успешно сохранена", docHistoryForSaving.getDocument());

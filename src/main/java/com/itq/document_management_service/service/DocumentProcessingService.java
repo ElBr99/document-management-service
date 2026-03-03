@@ -81,13 +81,13 @@ public class DocumentProcessingService {
     @LogDocumentProceeding
     @Transactional
     public void createDocument(CreateDocumentMetadataDto createDocumentMetadataDto) {
-        log.info("Происходит создание документа");
+        log.info("Происходит создание документа c title {}", createDocumentMetadataDto.getTitle());
 
         Document createdDocument = documentMapper.mapToDocument(createDocumentMetadataDto);
         createAndPublishEvent(createdDocument, createDocumentMetadataDto.getCreatedBy(), UserAction.CREATE);
 
-        documentRepository.save(createdDocument);
-        log.info("Документ успешно создан");
+        var doc = documentRepository.save(createdDocument);
+        log.info("Документ c title {} и documentNumber {} успешно создан",doc.getTitle(), doc.getDocumentNumber());
     }
 
     @LogDocumentProceeding
